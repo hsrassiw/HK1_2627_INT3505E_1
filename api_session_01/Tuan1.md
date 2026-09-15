@@ -16,3 +16,14 @@ Kết quả test GET /health:
 
 Kết quả test POST /echo:
 ![Kết quả test echo](bai2_echo.png)
+
+## Bài 3
+
+Chạy server:
+![Chạy server](bai3_server.png)
+
+Kết quả test thành công (201 Created):
+![Test thành công](bai3_success.png)
+
+Kết quả test lỗi thiếu dữ liệu (400 Bad Request):
+![Test lỗi 400](bai3_error.png)
