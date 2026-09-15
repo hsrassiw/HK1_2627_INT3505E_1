@@ -44,3 +44,20 @@ Kết quả test Query string giới hạn số lượng (limit=2):
 
 Kết quả test Query string tìm kiếm theo tên (q=van):
 ![Query string search](bai4_query.png)
+
+## Bài 5
+
+Chạy server:
+![Chạy server](bai5_server.png)
+
+Kết quả test xung đột quy tắc (409 Conflict):
+![Xoá thất bại 409](bai5_delete_conflict.png)
+
+Kết quả test xoá thành công (204 No Content):
+![Xoá thành công 204](bai5_delete_success.png)
+
+Kết quả test không tìm thấy sinh viên (404 Not Found):
+![Xoá lỗi 404](bai5_delete_not_found.png)
+
+Kiểm tra lại danh sách sau khi xoá:
+![Kiểm tra danh sách](bai5_check_list.png)
