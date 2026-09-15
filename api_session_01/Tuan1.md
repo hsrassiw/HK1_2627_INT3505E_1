@@ -61,3 +61,29 @@ Kết quả test không tìm thấy sinh viên (404 Not Found):
 
 Kiểm tra lại danh sách sau khi xoá:
 ![Kiểm tra danh sách](bai5_check_list.png)
+
+## Bài 6
+
+Kết quả test GET danh sách (200 OK):
+![GET danh sách](bai6_get_list.png)
+
+Kết quả test GET chi tiết theo ID (200 OK):
+![GET chi tiết 200](bai6_get_detail.png)
+
+Kết quả test GET không tìm thấy (404 Not Found):
+![GET lỗi 404](bai6_get_not_found.png)
+
+Kết quả test POST tạo mới sinh viên (201 Created):
+![POST tạo mới 201](bai6_post_success.png)
+
+Kết quả test PUT cập nhật sinh viên (200 OK):
+![PUT cập nhật 200](bai6_put_success.png)
+
+Kết quả test DELETE xoá sinh viên (204 No Content):
+![DELETE xoá 204](bai6_delete_success.png)
+
+Kết quả test POST lỗi thiếu dữ liệu (400 Bad Request):
+![POST lỗi 400](bai6_post_error.png)
+
+Kiểm tra lại danh sách cuối cùng:
+![Kiểm tra danh sách cuối](bai6_check_final.png)
