@@ -87,3 +87,20 @@ Kết quả test POST lỗi thiếu dữ liệu (400 Bad Request):
 
 Kiểm tra lại danh sách cuối cùng:
 ![Kiểm tra danh sách cuối](bai6_check_final.png)
+
+### Bài 6++
+
+Kết quả test tìm kiếm theo tên (q=van):
+![Tìm kiếm theo tên](bai6++_search.png)
+
+Kết quả test sắp xếp theo tên (sort=name):
+![Sắp xếp theo tên](bai6++_sort.png)
+
+Kết quả test tạo mới với year hợp lệ >= 1900 (201 Created):
+![Tạo mới year hợp lệ](bai6++_year_success.png)
+
+Kết quả test lỗi year < 1900 (400 Bad Request):
+![Lỗi year](bai6++_year_error.png)
+
+Kết quả test kết hợp tìm kiếm và sắp xếp:
+![Tìm kiếm và sắp xếp](bai6++_search_sort.png)

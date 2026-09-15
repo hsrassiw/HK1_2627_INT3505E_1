@@ -132,18 +132,18 @@
 # if __name__ == "__main__":
 #     app.run(host="127.0.0.1", port=5000, debug=True)
 
-# Bai 6
+# Bai 6++
 
 from flask import Flask, jsonify, request
 app = Flask(__name__)
 _next = 7
 STUDENTS = [
-    {"id": 1, "name": "Nguyen Van A", "gpa": 3.5},
-    {"id": 2, "name": "Tran Thi B", "gpa": 3.8},
-    {"id": 3, "name": "Le Van Cuong", "gpa": 3.2},
-    {"id": 4, "name": "Lai Tung Lam", "gpa": 3.9},
-    {"id": 5, "name": "Hoang Thi Mai", "gpa": 3.6},
-    {"id": 6, "name": "Dang Van Nam", "gpa": 2.8}
+    {"id": 1, "name": "Nguyen Van A", "gpa": 3.5, "year": 2004},
+    {"id": 2, "name": "Tran Thi B", "gpa": 3.8, "year": 2005},
+    {"id": 3, "name": "Le Van Cuong", "gpa": 3.2, "year": 2004},
+    {"id": 4, "name": "Lai Tung Lam", "gpa": 3.9, "year": 2003},
+    {"id": 5, "name": "Hoang Thi Mai", "gpa": 3.6, "year": 2005},
+    {"id": 6, "name": "Dang Van Nam", "gpa": 2.8, "year": 2004}
 ]
 
 def find(sid):
@@ -155,7 +155,15 @@ def find(sid):
 @app.route("/students", methods = ["GET"])
 def list_students():
     n = int(request.args.get("limit", 100))
-    return jsonify(STUDENTS[:n]), 200
+    q = request.args.get("q", "").strip().lower()
+    sort = request.args.get("sort", "").strip().lower()
+
+    items = [s for s in STUDENTS if q in s["name"].lower()]
+
+    if sort == "name":
+        items = sorted(items, key=lambda s: s["name"])
+
+    return jsonify(items[:n]), 200
 
 @app.route("/students/<int:sid>", methods=["GET"])
 def get_student(sid):
@@ -169,11 +177,19 @@ def get_student(sid):
 def create_student():
     global _next
     body = request.get_json(silent=True) or {}
-    name, gpa = body.get("name"), body.get("gpa")
+    name, gpa, year = body.get("name"), body.get("gpa"), body.get("year")
 
-    if not name or not gpa:
-        return jsonify({"error": "need name+gpa"}), 400
-    student = {"id": _next, "name":name, "gpa": gpa}
+    if not name or not gpa or not year:
+        return jsonify({"error": "need name+gpa+year"}), 400
+
+    try:
+        year = int(year)
+        if year < 1900:
+            return jsonify({"error": "year bat buoc >= 1900"}), 400
+    except:
+        return jsonify({"error": "year la bat buoc"}), 400
+    
+    student = {"id": _next, "name":name, "gpa": gpa, "year": year}
     _next +=1
     STUDENTS.append(student)
     return jsonify(student), 201, {"Location": f"/students/{student['id']}"}
