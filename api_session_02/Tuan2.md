@@ -34,3 +34,23 @@ Kết quả test DELETE xoá sách (204 No Content):
 
 Kết quả test GET không tìm thấy sau khi xoá (404 Not Found):
 ![GET 404](bai2_get_not_found.png)
+
+## Bài 3
+
+Kết quả test phân trang trang 1 (page=1&size=2):
+![Phân trang trang 1](bai3_page1.png)
+
+Kết quả test phân trang trang 2 có link prev và next (page=2&size=2):
+![Phân trang trang 2](bai3_page2.png)
+
+Kết quả test lọc theo tác giả (author=Orwell):
+![Lọc theo tác giả](bai3_filter_author.png)
+
+Kết quả test tìm kiếm từ khoá trong tiêu đề (q=clean):
+![Tìm kiếm từ khoá](bai3_search_query.png)
+
+Kết quả test lỗi tham số không phải số nguyên (400 Bad Request):
+![Lỗi tham số 400](bai3_error_page_int.png)
+
+Kết quả test Header Accept application/json (200 OK):
+![Header Accept](bai3_accept_header.png)
