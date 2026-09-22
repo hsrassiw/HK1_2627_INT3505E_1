@@ -1,6 +1,7 @@
 # Bai 3
 
-import sqlite3
+import sqlite3 
+import hashlib
 from flask import Flask, jsonify, make_response, request
 
 app = Flask(__name__)
@@ -91,7 +92,19 @@ def fetch(bid):
     db.close()
     if not row:
         return jsonify(error="not found"), 404
+    # Hash noi dung sach tao ETag
+    raw = f"{row['title']}|{row['author']}|{row['isbn']}|{row['price']}"
+    etag = hashlib.md5(raw.encode("utf-8")).hexdigest()
+
+    match = request.headers.get("If-None-Match")
+    if match and match.strip('"') == etag:
+        resp = make_response("", 304)
+        resp.headers["ETag"] = f'"{etag}"'
+        resp.headers["Cache-Control"] = "max-age=60"
+        return resp
+    
     resp = make_response(jsonify(dict(row)), 200)
+    resp.headers["ETag"] = f'"{etag}"'
     resp.headers["Cache-Control"] = "max-age=60"
     return resp
 

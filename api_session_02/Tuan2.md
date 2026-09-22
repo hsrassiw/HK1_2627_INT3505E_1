@@ -58,4 +58,16 @@ Kết quả test Header Accept application/json (200 OK):
 ## Bài 1 BTVN
 
 Kết quả chạy test:
-![alt text](BTVN1.png)
+![alt text](btvn1.png)
+
+
+## Bài 3 BTVN
+
+Chạy server:
+![Chạy server](btvn3_server.png)
+
+Kết quả test GET /books/1 trả kèm ETag (200 OK):
+![200](btvn3_get_etag.png)
+
+Kết quả test If-None-Match khi không đổi (304 Not Modified):
+![304](btvn3_304.png)
