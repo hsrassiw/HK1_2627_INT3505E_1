@@ -6,4 +6,4 @@
 ## Danh mục các tuần
 
 - [Tuần 1](./api_session_01/Tuan1.md)
-- [Tuần 2](./api_session_01/Tuan2.md)
+- [Tuần 2](./api_session_02/Tuan2.md)
