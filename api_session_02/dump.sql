@@ -1,0 +1,11 @@
+BEGIN TRANSACTION;
+CREATE TABLE books (id INTEGER PRIMARY KEY, title, author, isbn, price);
+INSERT INTO "books" VALUES(1,'Clean Code','Robert C. Martin',NULL,30.0);
+INSERT INTO "books" VALUES(2,'Clean Architecture','Robert C. Martin',NULL,35.0);
+INSERT INTO "books" VALUES(3,'1984','Orwell',NULL,15.0);
+INSERT INTO "books" VALUES(4,'Animal Farm','Orwell',NULL,12.0);
+INSERT INTO "books" VALUES(5,'Refactoring','Martin Fowler',NULL,40.0);
+CREATE TABLE orders (id INTEGER PRIMARY KEY, book_id, quantity, total_price);
+INSERT INTO "orders" VALUES(1,1,2,60.0);
+INSERT INTO "orders" VALUES(2,3,1,15.0);
+COMMIT;

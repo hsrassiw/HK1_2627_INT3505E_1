@@ -54,3 +54,8 @@ Kết quả test lỗi tham số không phải số nguyên (400 Bad Request):
 
 Kết quả test Header Accept application/json (200 OK):
 ![Header Accept](bai3_accept_header.png)
+
+## Bài 1 BTVN
+
+Kết quả chạy test:
+![alt text](BTVN1.png)
