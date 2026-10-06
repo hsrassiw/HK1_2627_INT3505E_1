@@ -33,3 +33,27 @@ Kết quả test lọc theo tag (tag=api):
 
 Kết quả test POST tạo mới thành công (201 Created):
 ![POST 201](lab1_post_success.png)
+
+## Lab2
+
+Chạy server:
+![Chạy server](lab2_server.png)
+
+Kết quả test GET bài viết không tồn tại (404 Not Found):
+![404](lab2_404_post.png)
+
+Kết quả test URL không tồn tại (404 Not Found):
+![404 URL](lab2_404_url.png)
+
+Kết quả test sai method (405 Method Not Allowed):
+![405](lab2_405.png)
+
+Kết quả test lỗi sai cú pháp JSON (400 Bad Request):
+![400](lab2_400.png)
+
+Kết quả test lỗi thiếu field (422 Unprocessable Entity):
+![422](lab2_422.png)
+
+Kết quả test lỗi server (500 Internal Server Error):
+![500](lab2_500.png)
+![server](lab2_500log.png)
