@@ -81,3 +81,8 @@ Kết quả test chọn field (fields=id,total):
 
 Kết quả test cursor hỏng (400 Bad Request):
 ![Cursor hỏng](lab3_bad_cursor.png)
+
+## BTVN1
+
+Kết quả chạy test cursor và sort:
+![pytest](btvn1_pytest.png)
