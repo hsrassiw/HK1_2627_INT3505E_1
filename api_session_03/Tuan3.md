@@ -57,3 +57,27 @@ Kết quả test lỗi thiếu field (422 Unprocessable Entity):
 Kết quả test lỗi server (500 Internal Server Error):
 ![500](lab2_500.png)
 ![server](lab2_500log.png)
+
+## Lab3
+
+Chạy server:
+![Chạy server](lab3_server.png)
+
+Kết quả test lọc theo trạng thái (status=paid):
+![Lọc status](lab3_filter_status.png)
+
+Kết quả test giới hạn số lượng (limit=5), có next_cursor:
+![Limit 5](lab3_limit.png)
+![next_cursor](lab3_limit_2.png)
+
+Kết quả test lấy trang tiếp theo bằng cursor:
+![Trang sau](lab3_next_page.png)
+
+Kết quả test sắp xếp giảm dần theo total (sort=-total):
+![Sort](lab3_sort.png)
+
+Kết quả test chọn field (fields=id,total):
+![Fields](lab3_fields.png)
+
+Kết quả test cursor hỏng (400 Bad Request):
+![Cursor hỏng](lab3_bad_cursor.png)

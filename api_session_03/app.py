@@ -1,3 +1,5 @@
+import base64
+import json
 from flask import Flask, jsonify, request
 from werkzeug.exceptions import HTTPException
 from errors import ApiProblem, _problem
@@ -92,6 +94,85 @@ def create_post():
 @app.get("/api/v1/test-error")
 def test_error():
     return 1 / 0
+
+
+# ___LAB 3: /api/v1/orders___
+STATUSES = ["pending", "paid", "shipped", "cancelled"]
+ORDERS = [
+    {
+        "id": i,
+        "customer_id": i % 5 + 1,
+        "status": STATUSES[i % 4],
+        "total": (i * 37) % 500 + 10,
+        "created_at": f"2026-09-{i:02d}",
+    }
+    for i in range(1, 26)
+]
+FIELDS = ["id", "customer_id", "status", "total", "created_at"]
+SORTS = ["id", "total", "created_at"]
+
+
+def bad_param(msg):
+    return ApiProblem(400, "Invalid parameter", msg, "invalid-parameter")
+
+
+# cursor = base64 cua {"id": id don cuoi trang truoc}
+def encode_cursor(oid):
+    raw = json.dumps({"id": oid})
+    return base64.urlsafe_b64encode(raw.encode()).decode()
+
+
+def decode_cursor(c):
+    try:
+        return json.loads(base64.urlsafe_b64decode(c))["id"]
+    except Exception:
+        raise ApiProblem(400, "Invalid cursor", "cursor khong hop le", "invalid-cursor")
+
+
+# ___GET /api/v1/orders___ cursor + filter + sort + fields
+@app.get("/api/v1/orders")
+def list_orders():
+    a = request.args
+
+    try:
+        limit = int(a.get("limit", 10))
+    except ValueError:
+        raise bad_param("limit phai la so nguyen")
+    limit = max(1, min(limit, 100))
+
+    items = ORDERS
+    if a.get("status"):
+        items = [o for o in items if o["status"] == a["status"]]
+    if a.get("customer_id"):
+        items = [o for o in items if str(o["customer_id"]) == a["customer_id"]]
+
+    sort = a.get("sort", "id")
+    key = sort.lstrip("-")
+    if key not in SORTS:
+        raise bad_param(f"khong sort duoc theo {key}")
+    items = sorted(items, key=lambda o: o[key], reverse=sort.startswith("-"))
+
+    start = 0
+    if a.get("cursor"):
+        last_id = decode_cursor(a["cursor"])
+        ids = [o["id"] for o in items]
+        if last_id not in ids:
+            raise ApiProblem(400, "Invalid cursor", "cursor khong hop le", "invalid-cursor")
+        start = ids.index(last_id) + 1
+
+    page = items[start:start + limit]
+    next_cursor = None
+    if start + limit < len(items):
+        next_cursor = encode_cursor(page[-1]["id"])
+
+    if a.get("fields"):
+        fields = a["fields"].split(",")
+        for f in fields:
+            if f not in FIELDS:
+                raise bad_param(f"field {f} khong ton tai")
+        page = [{f: o[f] for f in fields} for o in page]
+
+    return jsonify(data=page, next_cursor=next_cursor), 200
 
 
 if __name__ == "__main__":
