@@ -1,0 +1,608 @@
+openapi: 3.0.3
+info:
+  contact:
+    email: api@example.vn
+    name: API Team
+  description: "Quản lý thú cưng của cửa hàng — name, tag, status."
+  title: Pet Store API
+  version: 1.0.0
+servers:
+- description: Local dev
+  url: http://localhost:5000/v1
+- description: Mock server (Prism)
+  url: http://localhost:4010
+security:
+- bearerAuth: []
+tags:
+- description: CRUD thú cưng
+  name: pets
+paths:
+  /pets:
+    get:
+      description: "Phân trang offset (0-based), tối đa 100 item/trang, sort theo\
+        \ id tăng dần."
+      operationId: list_pets
+      parameters:
+      - description: Số item mỗi trang (1-100)
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 20
+          maximum: 100
+          minimum: 1
+          type: integer
+        style: form
+      - description: Số item bỏ qua (0-based)
+        explode: true
+        in: query
+        name: offset
+        required: false
+        schema:
+          default: 0
+          minimum: 0
+          type: integer
+        style: form
+      - description: Lọc theo trạng thái; bỏ trống = tất cả
+        explode: true
+        in: query
+        name: status
+        required: false
+        schema:
+          $ref: "#/components/schemas/PetStatus"
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PetPage"
+          description: Một trang thú cưng
+        "401":
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/unauthorized
+                title: Unauthorized
+                status: 401
+                detail: Token hết hạn hoặc không hợp lệ
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Thiếu hoặc sai bearer token
+        default:
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/internal
+                title: Internal Server Error
+                status: 500
+                traceId: 4bf92f3577b34da6
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Lỗi không mong đợi phía server
+      summary: Liệt kê thú cưng
+      tags:
+      - pets
+      x-openapi-router-controller: openapi_server.controllers.pets_controller
+    post:
+      description: Chỉ name là bắt buộc; status mặc định available.
+      operationId: create_pets
+      requestBody:
+        content:
+          application/json:
+            example:
+              name: Milu
+              tag: dog
+            schema:
+              $ref: "#/components/schemas/CreatePetInput"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+          description: Tạo thành công
+          headers:
+            Location:
+              description: URL của thú cưng mới
+              explode: false
+              schema:
+                type: string
+              style: simple
+        "400":
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/bad-request
+                title: Bad Request
+                status: 400
+                detail: Body không phải JSON hợp lệ
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: "Request sai định dạng (JSON hỏng, sai kiểu dữ liệu)"
+        "401":
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/unauthorized
+                title: Unauthorized
+                status: 401
+                detail: Token hết hạn hoặc không hợp lệ
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Thiếu hoặc sai bearer token
+        "422":
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/validation
+                title: Validation failed
+                status: 422
+                detail: name không được để trống
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Dữ liệu không hợp lệ
+        default:
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/internal
+                title: Internal Server Error
+                status: 500
+                traceId: 4bf92f3577b34da6
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Lỗi không mong đợi phía server
+      summary: Thêm thú cưng mới
+      tags:
+      - pets
+      x-openapi-router-controller: openapi_server.controllers.pets_controller
+  /pets/{petId}:
+    delete:
+      description: Xoá vĩnh viễn; thành công trả 204 không có body.
+      operationId: delete_pet
+      parameters:
+      - description: ID của thú cưng
+        example: 1
+        explode: false
+        in: path
+        name: petId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: "Xoá thành công, không có body"
+        "401":
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/unauthorized
+                title: Unauthorized
+                status: 401
+                detail: Token hết hạn hoặc không hợp lệ
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Thiếu hoặc sai bearer token
+        "404":
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/pet-not-found
+                title: Pet not found
+                status: 404
+                detail: Không tồn tại thú cưng với id này
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Không tìm thấy thú cưng
+        default:
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/internal
+                title: Internal Server Error
+                status: 500
+                traceId: 4bf92f3577b34da6
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Lỗi không mong đợi phía server
+      summary: Xoá thú cưng
+      tags:
+      - pets
+      x-openapi-router-controller: openapi_server.controllers.pets_controller
+    get:
+      description: Trả đầy đủ thông tin thú cưng; 404 nếu không tồn tại.
+      operationId: show_pet_by_id
+      parameters:
+      - description: ID của thú cưng
+        example: 1
+        explode: false
+        in: path
+        name: petId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+          description: Thú cưng (sau khi đọc hoặc cập nhật)
+        "401":
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/unauthorized
+                title: Unauthorized
+                status: 401
+                detail: Token hết hạn hoặc không hợp lệ
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Thiếu hoặc sai bearer token
+        "404":
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/pet-not-found
+                title: Pet not found
+                status: 404
+                detail: Không tồn tại thú cưng với id này
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Không tìm thấy thú cưng
+        default:
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/internal
+                title: Internal Server Error
+                status: 500
+                traceId: 4bf92f3577b34da6
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Lỗi không mong đợi phía server
+      summary: Xem chi tiết thú cưng
+      tags:
+      - pets
+      x-openapi-router-controller: openapi_server.controllers.pets_controller
+    patch:
+      description: Chỉ gửi trường cần đổi (tối thiểu 1); gửi null cho tag để xoá giá
+        trị.
+      operationId: update_pet
+      parameters:
+      - description: ID của thú cưng
+        example: 1
+        explode: false
+        in: path
+        name: petId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            example:
+              status: sold
+            schema:
+              $ref: "#/components/schemas/UpdatePetInput"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+          description: Thú cưng (sau khi đọc hoặc cập nhật)
+        "401":
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/unauthorized
+                title: Unauthorized
+                status: 401
+                detail: Token hết hạn hoặc không hợp lệ
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Thiếu hoặc sai bearer token
+        "404":
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/pet-not-found
+                title: Pet not found
+                status: 404
+                detail: Không tồn tại thú cưng với id này
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Không tìm thấy thú cưng
+        "422":
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/validation
+                title: Validation failed
+                status: 422
+                detail: name không được để trống
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Dữ liệu không hợp lệ
+        default:
+          content:
+            application/problem+json:
+              example:
+                type: https://api.example.vn/errors/internal
+                title: Internal Server Error
+                status: 500
+                traceId: 4bf92f3577b34da6
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Lỗi không mong đợi phía server
+      summary: Cập nhật một phần thú cưng
+      tags:
+      - pets
+      x-openapi-router-controller: openapi_server.controllers.pets_controller
+components:
+  parameters:
+    PetId:
+      description: ID của thú cưng
+      example: 1
+      explode: false
+      in: path
+      name: petId
+      required: true
+      schema:
+        format: int64
+        minimum: 1
+        type: integer
+      style: simple
+    PageLimit:
+      description: Số item mỗi trang (1-100)
+      explode: true
+      in: query
+      name: limit
+      required: false
+      schema:
+        default: 20
+        maximum: 100
+        minimum: 1
+        type: integer
+      style: form
+    PageOffset:
+      description: Số item bỏ qua (0-based)
+      explode: true
+      in: query
+      name: offset
+      required: false
+      schema:
+        default: 0
+        minimum: 0
+        type: integer
+      style: form
+    StatusFilter:
+      description: Lọc theo trạng thái; bỏ trống = tất cả
+      explode: true
+      in: query
+      name: status
+      required: false
+      schema:
+        $ref: "#/components/schemas/PetStatus"
+      style: form
+  responses:
+    PetOk:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Pet"
+      description: Thú cưng (sau khi đọc hoặc cập nhật)
+    BadRequest:
+      content:
+        application/problem+json:
+          example:
+            type: https://api.example.vn/errors/bad-request
+            title: Bad Request
+            status: 400
+            detail: Body không phải JSON hợp lệ
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: "Request sai định dạng (JSON hỏng, sai kiểu dữ liệu)"
+    Unauthorized:
+      content:
+        application/problem+json:
+          example:
+            type: https://api.example.vn/errors/unauthorized
+            title: Unauthorized
+            status: 401
+            detail: Token hết hạn hoặc không hợp lệ
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Thiếu hoặc sai bearer token
+    NotFound:
+      content:
+        application/problem+json:
+          example:
+            type: https://api.example.vn/errors/pet-not-found
+            title: Pet not found
+            status: 404
+            detail: Không tồn tại thú cưng với id này
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Không tìm thấy thú cưng
+    ValidationError:
+      content:
+        application/problem+json:
+          example:
+            type: https://api.example.vn/errors/validation
+            title: Validation failed
+            status: 422
+            detail: name không được để trống
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Dữ liệu không hợp lệ
+    ServerError:
+      content:
+        application/problem+json:
+          example:
+            type: https://api.example.vn/errors/internal
+            title: Internal Server Error
+            status: 500
+            traceId: 4bf92f3577b34da6
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Lỗi không mong đợi phía server
+  schemas:
+    PetName:
+      example: Milu
+      maxLength: 100
+      minLength: 1
+      title: name
+      type: string
+    PetStatus:
+      enum:
+      - available
+      - pending
+      - sold
+      example: available
+      title: PetStatus
+      type: string
+    Pet:
+      example:
+        id: 1
+        name: Milu
+        tag: dog
+        status: available
+      properties:
+        id:
+          example: 1
+          format: int64
+          readOnly: true
+          title: id
+          type: integer
+        name:
+          example: Milu
+          maxLength: 100
+          minLength: 1
+          title: name
+          type: string
+        tag:
+          example: dog
+          nullable: true
+          title: tag
+          type: string
+        status:
+          $ref: "#/components/schemas/PetStatus"
+      required:
+      - id
+      - name
+      - status
+      title: Pet
+      type: object
+    CreatePetInput:
+      example:
+        name: Milu
+        tag: dog
+      properties:
+        name:
+          example: Milu
+          maxLength: 100
+          minLength: 1
+          title: name
+          type: string
+        tag:
+          example: dog
+          title: tag
+          type: string
+      required:
+      - name
+      title: CreatePetInput
+      type: object
+    UpdatePetInput:
+      example:
+        name: Milu
+        tag: cat
+        status: available
+      minProperties: 1
+      properties:
+        name:
+          example: Milu
+          maxLength: 100
+          minLength: 1
+          title: name
+          type: string
+        tag:
+          example: cat
+          nullable: true
+          title: tag
+          type: string
+        status:
+          $ref: "#/components/schemas/PetStatus"
+      title: UpdatePetInput
+      type: object
+    PetPage:
+      example:
+        items:
+        - id: 1
+          name: Milu
+          tag: dog
+          status: available
+        - id: 1
+          name: Milu
+          tag: dog
+          status: available
+        total: 42
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/Pet"
+          title: items
+          type: array
+        total:
+          example: 42
+          title: total
+          type: integer
+      required:
+      - items
+      - total
+      title: PetPage
+      type: object
+    Error:
+      properties:
+        type:
+          format: uri
+          title: type
+          type: string
+        title:
+          title: title
+          type: string
+        status:
+          title: status
+          type: integer
+        detail:
+          title: detail
+          type: string
+        traceId:
+          example: 4bf92f3577b34da6
+          title: traceId
+          type: string
+      required:
+      - status
+      - title
+      title: Error
+      type: object
+  securitySchemes:
+    bearerAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
+      x-bearerInfoFunc: openapi_server.controllers.security_controller.info_from_bearerAuth

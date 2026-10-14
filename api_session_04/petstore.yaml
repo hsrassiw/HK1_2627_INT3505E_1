@@ -1,0 +1,188 @@
+openapi: 3.0.3
+info:
+  title: Pet Store API
+  version: 1.0.0
+  description: Quản lý thú cưng của cửa hàng — name, tag, status.
+  contact: {name: API Team, email: api@example.vn}
+servers:
+  - {url: 'http://localhost:5000/v1', description: Local dev}
+  - {url: 'http://localhost:4010', description: Mock server (Prism)}
+security:
+  - bearerAuth: []
+tags:
+  - {name: pets, description: CRUD thú cưng}
+
+paths:
+  /pets:
+    get:
+      tags: [pets]
+      operationId: listPets
+      summary: Liệt kê thú cưng
+      description: Phân trang offset (0-based), tối đa 100 item/trang, sort theo id tăng dần.
+      parameters:
+        - $ref: '#/components/parameters/PageLimit'
+        - $ref: '#/components/parameters/PageOffset'
+        - $ref: '#/components/parameters/StatusFilter'
+      responses:
+        '200':
+          description: Một trang thú cưng
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PetPage'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        default: {$ref: '#/components/responses/ServerError'}
+    post:
+      tags: [pets]
+      operationId: createPets
+      summary: Thêm thú cưng mới
+      description: Chỉ name là bắt buộc; status mặc định available.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CreatePetInput'}
+            example: {name: Milu, tag: dog}
+      responses:
+        '201':
+          description: Tạo thành công
+          headers:
+            Location: {description: URL của thú cưng mới, schema: {type: string}}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Pet'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+        default: {$ref: '#/components/responses/ServerError'}
+
+  /pets/{petId}:
+    parameters:
+      - $ref: '#/components/parameters/PetId'
+    get:
+      tags: [pets]
+      operationId: showPetById
+      summary: Xem chi tiết thú cưng
+      description: Trả đầy đủ thông tin thú cưng; 404 nếu không tồn tại.
+      responses:
+        '200': {$ref: '#/components/responses/PetOk'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        default: {$ref: '#/components/responses/ServerError'}
+    patch:
+      tags: [pets]
+      operationId: updatePet
+      summary: Cập nhật một phần thú cưng
+      description: Chỉ gửi trường cần đổi (tối thiểu 1); gửi null cho tag để xoá giá trị.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/UpdatePetInput'}
+            example: {status: sold}
+      responses:
+        '200': {$ref: '#/components/responses/PetOk'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+        default: {$ref: '#/components/responses/ServerError'}
+    delete:
+      tags: [pets]
+      operationId: deletePet
+      summary: Xoá thú cưng
+      description: Xoá vĩnh viễn; thành công trả 204 không có body.
+      responses:
+        '204': {description: 'Xoá thành công, không có body'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        default: {$ref: '#/components/responses/ServerError'}
+
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
+
+  parameters:
+    PetId:
+      {name: petId, in: path, required: true, description: ID của thú cưng, schema: {type: integer, format: int64, minimum: 1}, example: 1}
+    PageLimit:
+      {name: limit, in: query, description: Số item mỗi trang (1-100), schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+    PageOffset:
+      {name: offset, in: query, description: Số item bỏ qua (0-based), schema: {type: integer, minimum: 0, default: 0}}
+    StatusFilter:
+      {name: status, in: query, description: Lọc theo trạng thái; bỏ trống = tất cả, schema: {$ref: '#/components/schemas/PetStatus'}}
+
+  schemas:
+    PetName: {type: string, minLength: 1, maxLength: 100, example: Milu}
+    PetStatus: {type: string, enum: [available, pending, sold], example: available}
+    Pet:
+      type: object
+      required: [id, name, status]
+      properties:
+        id: {type: integer, format: int64, readOnly: true, example: 1}
+        name: {$ref: '#/components/schemas/PetName'}
+        tag: {type: string, nullable: true, example: dog}
+        status: {$ref: '#/components/schemas/PetStatus'}
+    CreatePetInput:
+      type: object
+      required: [name]
+      properties:
+        name: {$ref: '#/components/schemas/PetName'}
+        tag: {type: string, example: dog}
+    UpdatePetInput:
+      type: object
+      minProperties: 1
+      properties:
+        name: {$ref: '#/components/schemas/PetName'}
+        tag: {type: string, nullable: true, example: cat}
+        status: {$ref: '#/components/schemas/PetStatus'}
+    PetPage:
+      type: object
+      required: [items, total]
+      properties:
+        items: {type: array, items: {$ref: '#/components/schemas/Pet'}}
+        total: {type: integer, example: 42}
+    Error:  # RFC 7807 Problem Details
+      type: object
+      required: [status, title]
+      properties:
+        type: {type: string, format: uri}
+        title: {type: string}
+        status: {type: integer}
+        detail: {type: string}
+        traceId: {type: string, example: 4bf92f3577b34da6}
+
+  responses:
+    PetOk:
+      description: Thú cưng (sau khi đọc hoặc cập nhật)
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Pet'}
+    BadRequest:
+      description: Request sai định dạng (JSON hỏng, sai kiểu dữ liệu)
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Error'}
+          example: {type: 'https://api.example.vn/errors/bad-request', title: Bad Request, status: 400, detail: Body không phải JSON hợp lệ}
+    Unauthorized:
+      description: Thiếu hoặc sai bearer token
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Error'}
+          example: {type: 'https://api.example.vn/errors/unauthorized', title: Unauthorized, status: 401, detail: Token hết hạn hoặc không hợp lệ}
+    NotFound:
+      description: Không tìm thấy thú cưng
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Error'}
+          example: {type: 'https://api.example.vn/errors/pet-not-found', title: Pet not found, status: 404, detail: Không tồn tại thú cưng với id này}
+    ValidationError:
+      description: Dữ liệu không hợp lệ
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Error'}
+          example: {type: 'https://api.example.vn/errors/validation', title: Validation failed, status: 422, detail: name không được để trống}
+    ServerError:
+      description: Lỗi không mong đợi phía server
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Error'}
+          example: {type: 'https://api.example.vn/errors/internal', title: Internal Server Error, status: 500, traceId: 4bf92f3577b34da6}
