@@ -49,3 +49,23 @@ Kết quả test lọc theo thể loại và sắp xếp giá giảm dần (cate
 
 Kết quả test sort không hợp lệ (400 Bad Request):
 ![Sort sai](lab2_bad_sort.png)
+
+## BTVN2
+
+Tham số của `GET /api/v1/books`:
+
+| Tham số | Ý nghĩa |
+| --- | --- |
+| `strategy` | `cursor` (mặc định) hoặc `offset` |
+| `limit` | số sách mỗi trang, mặc định 20, tối đa 100 |
+| `offset` | vị trí bắt đầu, dùng với `strategy=offset` |
+| `cursor` | lấy từ `page.next` của trang trước, dùng với `strategy=cursor` |
+| `genre` | lọc theo thể loại, vd `tech`, `novel` |
+| `sort` | sort nhiều cột, vd `-price,title` (`-` là giảm dần) |
+
+Kết quả chạy test:
+![pytest](btvn2_pytest.png)
+
+Kết quả chạy Postman collection ([bookstore.postman_collection.json](postman/bookstore.postman_collection.json)):
+![Postman](btvn2_postman.png)
+![Postman](btvn2_postman_2.png)

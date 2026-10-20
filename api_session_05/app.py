@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
 from models import Author, Book, Category, Review, User, db
@@ -6,7 +7,8 @@ from routes.books import bp
 app = Flask(__name__)
 app.json.ensure_ascii = False
 app.json.sort_keys = False
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///bookstore.db"
+# test dat DATABASE_URL de dung DB rieng
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///bookstore.db")
 db.init_app(app)
 app.register_blueprint(bp)
 
