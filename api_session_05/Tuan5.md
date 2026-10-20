@@ -32,3 +32,20 @@ Kết quả test POST sai schema (400 Bad Request):
 
 Kết quả test xem tác giả của sách (200 OK):
 ![Tác giả](lab1_authors.png)
+
+## Lab2
+
+Chạy server:
+![Chạy server](lab2_server.png)
+
+Kết quả test phân trang (limit=3), có cursor trang sau:
+![Limit 3](lab2_limit.png)
+
+Kết quả test lấy trang tiếp theo bằng cursor:
+![Trang sau](lab2_next_page.png)
+
+Kết quả test lọc theo thể loại và sắp xếp giá giảm dần (category=2&sort=-price):
+![Filter + sort](lab2_filter_sort.png)
+
+Kết quả test sort không hợp lệ (400 Bad Request):
+![Sort sai](lab2_bad_sort.png)
