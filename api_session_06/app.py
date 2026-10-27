@@ -5,19 +5,26 @@ from flask_jwt_extended import (
     JWTManager, create_access_token, create_refresh_token,
     jwt_required, get_jwt_identity, get_jwt
 )
-from data import USERS, load_permissions, orders_by_owner
+from auth import require_roles, require_scopes, user_owns_resource
+from data import ORDERS, USERS, find_user, load_permissions, orders_by_owner
 
 app = Flask(__name__)
 app.json.ensure_ascii = False
 app.json.sort_keys = False
 app.config.update(
     SECRET_KEY=os.environ.get("FLASK_SECRET_KEY", "dev-flask-secret"),
-    JWT_SECRET_KEY=os.environ.get("JWT_SECRET_KEY", "dev-jwt-secret-demo"),
+    JWT_SECRET_KEY=os.environ.get("JWT_SECRET_KEY", "dev-jwt-secret-demo-0123456789abcdef"),
     JWT_ACCESS_TOKEN_EXPIRES=900,         
     JWT_REFRESH_TOKEN_EXPIRES=2592000,    
     JWT_ALGORITHM="HS256",
 )
 jwt = JWTManager(app)
+
+
+# nap user tu token, trong auth.py dung current_user de lay ra
+@jwt.user_lookup_loader
+def load_user(_h, claims):
+    return find_user(claims["sub"])
 
 
 # ___POST /api/auth/login___ cap access + refresh kem claims
@@ -54,6 +61,17 @@ def refresh():
     claims = load_permissions(get_jwt_identity())
     return jsonify(access=create_access_token(
         identity=get_jwt_identity(), additional_claims=claims))
+
+
+# ___DELETE /api/orders/<id>___ 3 lop check: role, scope, chu order
+@app.delete("/api/orders/<int:id>")
+@jwt_required()
+@require_roles("admin", "manager")
+@require_scopes("orders:write")
+@user_owns_resource("id")
+def delete_order(id):
+    ORDERS.pop(id)
+    return "", 204
 
 
 if __name__ == "__main__":

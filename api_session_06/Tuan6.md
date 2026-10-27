@@ -33,3 +33,25 @@ Kết quả test gọi `/api/orders` có token (200 OK):
 
 Kết quả test refresh lấy access token mới (200 OK):
 ![Refresh](lab1_refresh.png)
+
+## Lab2
+
+`DELETE /api/orders/{id}` có 3 lớp check (code trong `auth.py`):
+
+| Lớp | Decorator | Lỗi |
+| --- | --- | --- |
+| Role | `require_roles("admin", "manager")` | 403 nếu không có role nào |
+| Scope | `require_scopes("orders:write")` | 403 nếu thiếu scope |
+| Chủ order | `user_owns_resource("id")` | 404 nếu không có order, 403 nếu không phải chủ (chống BOLA) |
+
+Kết quả test xoá order của chính mình (204 No Content):
+![Xoá 204](lab2_delete_204.png)
+
+Kết quả test xoá order của người khác (403 Forbidden):
+![Xoá 403](lab2_delete_403.png)
+
+Kết quả test xoá order không tồn tại (404 Not Found):
+![Xoá 404](lab2_delete_404.png)
+
+Kết quả test user không có role manager/admin (403 Forbidden):
+![Không có role](lab2_no_role.png)
