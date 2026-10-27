@@ -55,3 +55,19 @@ Kết quả test xoá order không tồn tại (404 Not Found):
 
 Kết quả test user không có role manager/admin (403 Forbidden):
 ![Không có role](lab2_no_role.png)
+
+## BTVN
+
+OpenAPI spec cho 3 endpoint mạng xã hội: [openapi.yaml](openapi.yaml)
+
+| Endpoint | Token | Scope | Status code |
+| --- | --- | --- | --- |
+| `POST /auth/login` | không cần | không cần | 200, 400, 401, 429 |
+| `POST /auth/refresh` | refresh token | không cần | 200, 401 |
+| `GET /posts/{id}` | access token | `posts:read` | 200, 401, 403, 404 |
+
+Các điểm có thể lộ: [SecurityAudit.md](SecurityAudit.md)
+
+Kết quả mở spec trên Swagger Editor:
+![Swagger Editor](btvn_swagger.png)
+![Responses](btvn_swagger_responses.png)

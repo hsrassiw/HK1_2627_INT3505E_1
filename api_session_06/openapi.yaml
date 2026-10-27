@@ -1,0 +1,177 @@
+openapi: 3.0.3
+info:
+  title: Social Network API
+  version: 1.0.0
+  description: |
+    Đăng nhập bằng JWT (access 15 phút, refresh 30 ngày) và xem bài viết.
+    Scope nằm trong claim `scopes` của access token.
+servers:
+  - {url: 'http://localhost:5000/api', description: Local dev}
+tags:
+  - {name: auth, description: Đăng nhập và cấp token}
+  - {name: posts, description: Bài viết}
+
+paths:
+  /auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      summary: Đăng nhập
+      description: |
+        Public, không cần token và không cần scope.
+        Sai email hay sai mật khẩu đều trả chung một lỗi 401 để không lộ email nào đã đăng ký.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LoginInput'}
+            example: {email: an@vnu.edu.vn, password: secret123}
+      responses:
+        '200':
+          description: Đăng nhập thành công, trả access + refresh token
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TokenPair'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401':
+          description: Sai email hoặc mật khẩu
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Error'}
+              example: {error: invalid_credentials, message: Email hoặc mật khẩu không đúng}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        default: {$ref: '#/components/responses/ServerError'}
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      operationId: refreshToken
+      summary: Lấy access token mới
+      description: |
+        Gửi refresh token trong header `Authorization: Bearer <refresh>`. Không cần scope.
+        Không nhận access token. Quyền (roles, scopes) được nạp lại từ DB khi cấp token mới.
+        Mỗi lần refresh cấp refresh token mới và thu hồi cái cũ.
+      security:
+        - refreshAuth: []
+      responses:
+        '200':
+          description: Access token mới + refresh token mới
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TokenPair'}
+        '401':
+          description: Thiếu refresh token, token hết hạn, đã bị thu hồi, hoặc gửi nhầm access token
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Error'}
+              example: {error: invalid_token, message: Refresh token đã hết hạn}
+        default: {$ref: '#/components/responses/ServerError'}
+
+  /posts/{id}:
+    get:
+      tags: [posts]
+      operationId: getPost
+      summary: Xem một bài viết
+      description: |
+        Cần access token có scope `posts:read`.
+        Bài `public` ai có scope cũng xem được; bài `friends` chỉ tác giả và bạn bè xem được;
+        bài `private` chỉ tác giả xem được (kiểm tra ownership, chống BOLA).
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      responses:
+        '200':
+          description: Nội dung bài viết
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Post'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403':
+          description: Token thiếu scope `posts:read`
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Error'}
+              example: {error: insufficient_scope, message: Cần scope posts:read}
+        '404':
+          description: Bài viết không tồn tại hoặc người gọi không được xem (trả 404 để không lộ bài có tồn tại)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Error'}
+              example: {error: not_found, message: Không tìm thấy bài viết}
+        default: {$ref: '#/components/responses/ServerError'}
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token lấy từ /auth/login hoặc /auth/refresh
+    refreshAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Refresh token lấy từ /auth/login
+
+  parameters:
+    PostId:
+      {name: id, in: path, required: true, description: ID bài viết, schema: {type: integer, minimum: 1}, example: 1}
+
+  schemas:
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: {type: string, format: email}
+        password: {type: string, minLength: 1, writeOnly: true}
+    TokenPair:
+      type: object
+      required: [access, refresh]
+      properties:
+        access: {type: string, description: Access token (sống 15 phút)}
+        refresh: {type: string, description: Refresh token (sống 30 ngày)}
+      example: {access: eyJhbGciOiJIUzI1NiIs..., refresh: eyJhbGciOiJIUzI1NiIs...}
+    Post:
+      type: object
+      required: [id, author_id, content, visibility, created_at]
+      properties:
+        id: {type: integer, example: 1}
+        author_id: {type: integer, example: 2}
+        content: {type: string, example: Hôm nay học JWT}
+        visibility: {type: string, enum: [public, friends, private], example: public}
+        created_at: {type: string, format: date-time}
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: {type: string, description: Mã lỗi ngắn}
+        message: {type: string}
+
+  responses:
+    BadRequest:
+      description: Body không phải JSON hoặc thiếu email/password
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+          example: {error: bad_request, message: Thiếu email hoặc password}
+    Unauthorized:
+      description: Thiếu access token, token sai chữ ký hoặc hết hạn
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+          example: {error: invalid_token, message: Token has expired}
+    TooManyRequests:
+      description: Đăng nhập sai quá nhiều lần, thử lại sau
+      headers:
+        Retry-After: {description: Số giây phải chờ, schema: {type: integer}}
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+          example: {error: too_many_requests, message: Thử lại sau 60 giây}
+    ServerError:
+      description: Lỗi không mong đợi phía server
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
