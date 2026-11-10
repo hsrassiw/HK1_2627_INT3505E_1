@@ -40,3 +40,12 @@ Kết quả test cập nhật giá (200 OK):
 ![Cập nhật giá](lab1_patch.png)
 Kết quả test xoá rồi lấy lại sản phẩm (204 No Content, sau đó 404 Not Found):
 ![Xoá rồi lấy lại](lab1_delete.png)
+
+## BTVN
+
+### Bài 4: health check
+
+Kết quả test khi DB bình thường (cả hai 200 OK):
+![Health OK](btvn_health_ok.png)
+Kết quả test khi DB lỗi (`/healthz` vẫn 200, `/ready` trả 503):
+![Ready 503](btvn_health_503.png)
