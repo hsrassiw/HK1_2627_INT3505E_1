@@ -71,3 +71,15 @@ Kết quả test đặt quá số lượng còn (409 Conflict):
 ![Hết hàng 409](btvn_order_409.png)
 Kết quả test lấy 1 đơn kèm items (200 OK):
 ![Lấy đơn](btvn_order_get.png)
+### Bài 5: pytest
+
+File `test_api.py`, mỗi test tạo app mới với `TestConfig` (SQLite trong RAM).
+
+| Test | Endpoint | Kiểm tra |
+| --- | --- | --- |
+| `test_create_product` | POST `/api/v1/products` | 201, tạo trùng sku thì 409 |
+| `test_create_order` | POST `/api/v1/orders` | 201, `qty_in_stock` bị trừ |
+| `test_list_orders_no_n_plus_1` | GET `/api/v1/orders` | 5 đơn chỉ tốn 2 query nhờ `selectinload` (bỏ `selectinload` thì thành 6 query, test fail) |
+
+Kết quả chạy `python -m pytest -v`:
+![Pytest](btvn_pytest.png)
