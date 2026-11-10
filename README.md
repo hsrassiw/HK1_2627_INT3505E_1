@@ -10,3 +10,4 @@
 - [Tuần 3](./api_session_03/Tuan3.md)
 - [Tuần 5](./api_session_05/Tuan5.md)
 - [Tuần 6](./api_session_06/Tuan6.md)
+- [Tuần 7](./api_session_07/Tuan7.md)
