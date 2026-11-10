@@ -83,3 +83,18 @@ File `test_api.py`, mỗi test tạo app mới với `TestConfig` (SQLite trong 
 
 Kết quả chạy `python -m pytest -v`:
 ![Pytest](btvn_pytest.png)
+### Bài 3: Docker
+
+| File | Vai trò |
+| --- | --- |
+| `requirements.txt` | thư viện cần cài trong container |
+| `Dockerfile` | đóng gói app: Python 3.12, cài thư viện, chạy `flask db upgrade` rồi `gunicorn` |
+| `docker-compose.yml` | chạy 2 container: `db` (PostgreSQL 16) và `api`, `api` đợi `db` healthy mới chạy |
+| `.dockerignore` | không chép `instance/`, `__pycache__`, ảnh, md vào image |
+
+Máy khác chỉ cần cài Docker rồi chạy `docker compose up --build`
+
+Kết quả chạy `docker compose up --build`:
+![Docker up](btvn_docker_up.png)
+Kết quả test gọi API chạy trong Docker:
+![API trong Docker](btvn_docker_api.png)
