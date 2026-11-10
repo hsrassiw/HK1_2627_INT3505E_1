@@ -49,3 +49,25 @@ Kết quả test khi DB bình thường (cả hai 200 OK):
 ![Health OK](btvn_health_ok.png)
 Kết quả test khi DB lỗi (`/healthz` vẫn 200, `/ready` trả 503):
 ![Ready 503](btvn_health_503.png)
+### Bài 2: Order và OrderItem
+
+Một `Order` có nhiều `OrderItem`, mỗi item trỏ tới một `Product` và lưu giá lúc đặt. Code trong blueprint riêng `orders.py`.
+
+| Endpoint | Method | Mô tả |
+| --- | --- | --- |
+| `/api/v1/orders` | POST | tạo đơn nhiều sản phẩm, trừ `qty_in_stock`, 409 nếu hết hàng |
+| `/api/v1/orders` | GET | danh sách đơn kèm items |
+| `/api/v1/orders/<id>` | GET | 1 đơn kèm items, 404 nếu không có |
+
+Lấy đơn dùng `selectinload(Order.items)` nên chỉ tốn 2 query dù có nhiều đơn (1 query lấy đơn, 1 query lấy items).
+
+Kết quả chạy migration thêm bảng `orders`, `order_items`:
+![Migration](btvn_order_migrate.png)
+Tạo trước 2 sản phẩm để test:
+![Tạo sản phẩm](btvn_order_products.png)
+Kết quả test tạo đơn 2 sản phẩm (201 Created):
+![Tạo đơn 201](btvn_order_201.png)
+Kết quả test đặt quá số lượng còn (409 Conflict):
+![Hết hàng 409](btvn_order_409.png)
+Kết quả test lấy 1 đơn kèm items (200 OK):
+![Lấy đơn](btvn_order_get.png)

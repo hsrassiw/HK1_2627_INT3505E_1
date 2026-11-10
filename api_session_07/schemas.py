@@ -33,3 +33,26 @@ class ProductPatch(Schema):
 # ___ /reserve ___
 class ReserveIn(Schema):
     qty = fields.Int(required=True, validate=validate.Range(min=1))
+
+
+# ___ order ___
+class OrderItemIn(Schema):
+    product_id = fields.Int(required=True)
+    qty = fields.Int(required=True, validate=validate.Range(min=1))
+
+
+class OrderIn(Schema):
+    items = fields.List(fields.Nested(OrderItemIn), required=True,
+                        validate=validate.Length(min=1))
+
+
+class OrderItemOut(Schema):
+    product_id = fields.Int()
+    qty = fields.Int()
+    unit_price_cents = fields.Int()
+
+
+class OrderOut(Schema):
+    id = fields.Int()
+    created_at = fields.DateTime()
+    items = fields.List(fields.Nested(OrderItemOut))
