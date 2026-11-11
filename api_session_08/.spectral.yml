@@ -1,0 +1,15 @@
+extends: ["spectral:oas"]
+
+rules:
+  
+  info-contact: off
+  operation-description: off
+  operation-tags: off
+
+  no-body-in-204:
+    description: "Response 204 No Content must not declare a content body."
+    given: "$.paths.*.*.responses.204"
+    severity: error
+    then:
+      field: content
+      function: undefined
