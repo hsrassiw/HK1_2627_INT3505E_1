@@ -13,3 +13,30 @@ rules:
     then:
       field: content
       function: undefined
+
+  response-200-not-empty:
+    description: "Response 200 phải có schema với ít nhất 1 trường"
+    given: "$.paths.*.*.responses.200.content.application/json.schema"
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          anyOf:
+            - required: [items]
+            - required: [properties]
+              properties:
+                properties: {minProperties: 1}
+
+  book-year-integer:
+    description: "Book.year phải là integer giống model"
+    given: "$.components.schemas.Book.properties.year"
+    severity: error
+    then:
+      field: type
+      function: pattern
+      functionOptions:
+        match: "^integer$"
+
+
+  
