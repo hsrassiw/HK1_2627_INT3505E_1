@@ -26,3 +26,13 @@ Kiểm tra sau khi fix year:
 ![alt text](lab2_fix_year.png)
 
 Spec pass Spectral nhưng Flask trả sai field thì Spectral không bắt được vì nó chỉ đọc file spec. Phải dùng pytest + jsonschema, lấy response thật rồi validate theo schema trong `openapi.yaml` (giống test bonus ở Lab 1).
+
+# Lab03
+
+Thêm folder `error-cases` (POST thiếu title, GET /books/9999), mỗi request có 2 `pm.test` trở lên. Lệnh chạy trong `run_newman.sh`, kết quả JUnit ở `reports/junit.xml`.
+
+Chạy server:
+![alt text](lab3_server.png)
+
+Kết quả chạy Newman (7 request, 15 assertion, không fail):
+![alt text](lab3_newman.png)
