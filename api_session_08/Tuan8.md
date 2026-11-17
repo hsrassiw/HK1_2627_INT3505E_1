@@ -36,3 +36,17 @@ Chạy server:
 
 Kết quả chạy Newman (7 request, 15 assertion, không fail):
 ![alt text](lab3_newman.png)
+
+
+# Lab04
+
+Thêm task `search_by_year` vào `performance/locustfile.py`, có 1% lỗi giả lập (Locust tự đánh dấu fail, server không trả 500 thật). Báo cáo HTML ở `reports/A.html`, `B.html`, `C.html`, phân tích ở `performance/analysis.md`.
+
+Kịch bản A (10 user, 30s):
+![alt text](lab4_A.png)
+
+Kịch bản B (50 user, 60s):
+![alt text](lab4_B.png)
+
+Kịch bản C (200 user, 30s):
+![alt text](lab4_C.png)
