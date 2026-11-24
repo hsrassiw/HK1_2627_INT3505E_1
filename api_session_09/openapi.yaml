@@ -1,0 +1,259 @@
+openapi: 3.0.3
+info:
+  title: Users API (Tuần 9 - Versioning)
+  version: 2.0.0
+  contact:
+    name: Pham Minh Nghia
+  description: |
+    Một API, nhiều cách versioning:
+    - URI path: /api/v1, /api/v2
+    - Header: /users/{id} + X-API-Version
+    - v1 đã deprecated (Sunset 31/12/2026), v0 đã sunset (410).
+servers:
+  - url: http://127.0.0.1:5000
+
+tags:
+  - name: v1
+  - name: v2
+  - name: header-versioning
+  - name: sunset
+
+paths:
+  /api/v1/users/{uid}:
+    get:
+      tags: [v1]
+      summary: Lấy user (v1, deprecated)
+      description: Trả full_name. Đã deprecated, sẽ tắt 31/12/2026, nên chuyển sang v2.
+      operationId: getUserV1
+      deprecated: true
+      parameters:
+        - $ref: "#/components/parameters/Uid"
+      responses:
+        "200":
+          description: User theo schema v1
+          headers:
+            Sunset:
+              $ref: "#/components/headers/Sunset"
+            Deprecation:
+              $ref: "#/components/headers/Deprecation"
+            Link:
+              $ref: "#/components/headers/Link"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserV1"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v2/users:
+    post:
+      tags: [v2]
+      summary: Tạo user (v2)
+      description: Tạo user mới, cần đủ first_name, last_name, email.
+      operationId: createUserV2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserV2Input"
+      responses:
+        "201":
+          description: Tạo thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserV2"
+        "400":
+          description: Thiếu field
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: missing fields
+                  fields:
+                    type: array
+                    items:
+                      type: string
+
+  /api/v2/users/{uid}:
+    get:
+      tags: [v2]
+      summary: Lấy user (v2)
+      description: Trả first_name và last_name tách riêng.
+      operationId: getUserV2
+      parameters:
+        - $ref: "#/components/parameters/Uid"
+      responses:
+        "200":
+          description: User theo schema v2
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserV2"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{uid}:
+    get:
+      tags: [header-versioning]
+      summary: Lấy user, chọn version qua header
+      description: Cùng URL cho mọi version, client gửi X-API-Version. Version lạ trả 400.
+      operationId: getUserByHeader
+      parameters:
+        - $ref: "#/components/parameters/Uid"
+        - name: X-API-Version
+          in: header
+          required: false
+          description: Không gửi thì dùng bản mới nhất (2)
+          schema:
+            type: string
+            enum: ["1", "2", "2024-06-20"]
+            default: "2"
+      responses:
+        "200":
+          description: v1 trả full_name, còn lại trả first_name/last_name/email
+          headers:
+            X-API-Version-Served:
+              description: Version server đã dùng
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      id:
+                        type: integer
+                      full_name:
+                        type: string
+                  - $ref: "#/components/schemas/UserV2"
+        "400":
+          description: Version không hỗ trợ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v0/users/{uid}:
+    get:
+      tags: [sunset]
+      summary: Bản v0 đã sunset
+      description: Đã qua ngày sunset 01/01/2026 nên luôn trả 410 Gone.
+      operationId: getUserV0
+      deprecated: true
+      parameters:
+        - $ref: "#/components/parameters/Uid"
+      responses:
+        "410":
+          description: Đã gỡ, dùng v2 thay thế
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: gone
+                  sunset:
+                    type: string
+                    example: Thu, 01 Jan 2026 00:00:00 GMT
+                  use_instead:
+                    type: string
+                    example: /api/v2/users
+
+components:
+  parameters:
+    Uid:
+      name: uid
+      in: path
+      required: true
+      schema:
+        type: integer
+        example: 1
+
+  headers:
+    Sunset:
+      description: Ngày v1 ngừng chạy (RFC 8594)
+      schema:
+        type: string
+        example: Thu, 31 Dec 2026 23:59:59 GMT
+    Deprecation:
+      description: Đánh dấu endpoint đã deprecated
+      schema:
+        type: string
+        example: "true"
+    Link:
+      description: Version thay thế
+      schema:
+        type: string
+        example: </api/v2/users>; rel="successor-version"
+
+  responses:
+    NotFound:
+      description: Không tìm thấy user
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    UserV1:
+      type: object
+      required: [id, full_name, email]
+      properties:
+        id:
+          type: integer
+          example: 1
+        full_name:
+          type: string
+          example: An Nguyen
+        email:
+          type: string
+          format: email
+          example: an.nguyen@example.com
+
+    UserV2:
+      type: object
+      required: [id, first_name, last_name, email]
+      properties:
+        id:
+          type: integer
+          example: 1
+        first_name:
+          type: string
+          example: An
+        last_name:
+          type: string
+          example: Nguyen
+        email:
+          type: string
+          format: email
+          example: an.nguyen@example.com
+
+    UserV2Input:
+      type: object
+      required: [first_name, last_name, email]
+      properties:
+        first_name:
+          type: string
+          example: Cuong
+        last_name:
+          type: string
+          example: Le
+        email:
+          type: string
+          format: email
+          example: cuong.le@example.com
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string

@@ -38,3 +38,16 @@ Gọi v1 trước sunset (200, có `Sunset`, `Deprecation`, `Link`):
 
 Gọi v0 sau sunset (410 Gone):
 ![alt text](lab3_v0_gone.png)
+
+# Mở rộng: POST /users cho v2
+
+Tạo user (201) và thiếu field (400):
+![alt text](lab1_ext_post.png)
+
+Đọc lại user vừa tạo qua v1, v2:
+![alt text](lab1_ext_get.png)
+
+# Mở rộng: OpenAPI spec
+
+Kết quả Spectral (warning còn lại do v0 đã sunset, chỉ trả 410):
+![alt text](lab1_ext_spectral.png)

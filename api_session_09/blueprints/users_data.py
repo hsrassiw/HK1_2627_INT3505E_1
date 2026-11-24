@@ -17,3 +17,10 @@ USERS = {
 def get_user(uid):
     """Return a user dict by id, or None if not found."""
     return USERS.get(uid)
+
+
+def create_user(first_name, last_name, email):
+    uid = max(USERS) + 1
+    USERS[uid] = {"id": uid, "first_name": first_name,
+                  "last_name": last_name, "email": email}
+    return USERS[uid]
