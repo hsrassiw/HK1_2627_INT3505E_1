@@ -1,8 +1,10 @@
+from datetime import datetime, timezone
 from functools import wraps
 from flask import Flask, jsonify, request
 from blueprints.v1 import bp as v1_bp
 from blueprints.v2 import bp as v2_bp
 from blueprints.users_data import get_user
+from sunset import deprecate_at
 
 LATEST = "2"
 SUPPORTED = {"1", "2", "2024-06-20"}
@@ -38,6 +40,12 @@ def get_user_by_header(version, uid):
         return {"id": uid, "full_name": f"{u['first_name']} {u['last_name']}"}, 200
     return {"id": uid, "first_name": u["first_name"],
             "last_name": u["last_name"], "email": u["email"]}, 200
+
+
+@app.route("/api/v0/users/<int:uid>")
+@deprecate_at(datetime(2026, 1, 1, tzinfo=timezone.utc), replacement="/api/v2/users")
+def get_v0(uid):
+    return {"id": uid}
 
 
 if __name__ == "__main__":
