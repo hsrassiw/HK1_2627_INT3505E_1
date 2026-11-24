@@ -51,3 +51,20 @@ Tạo user (201) và thiếu field (400):
 
 Kết quả Spectral (warning còn lại do v0 đã sunset, chỉ trả 410):
 ![alt text](lab1_ext_spectral.png)
+
+# Lab04
+
+Chạy server:
+![alt text](lab4_server.png)
+
+`X-Cohort: beta` vào v2:
+![alt text](lab4_cohort.png)
+
+`acct_42` (allow-list) vào v2:
+![alt text](lab4_force.png)
+
+Bucket 5%: `acct_1` vào v1, `acct_72` vào v2:
+![alt text](lab4_bucket.png)
+
+`V2_PERCENT = 100`: `acct_1` vào v2:
+![alt text](lab4_percent100.png)

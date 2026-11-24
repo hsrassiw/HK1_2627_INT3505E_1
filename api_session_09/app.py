@@ -5,6 +5,7 @@ from blueprints.v1 import bp as v1_bp
 from blueprints.v2 import bp as v2_bp
 from blueprints.users_data import get_user
 from sunset import deprecate_at
+from gateway import dispatch
 
 LATEST = "2"
 SUPPORTED = {"1", "2", "2024-06-20"}
@@ -46,6 +47,14 @@ def get_user_by_header(version, uid):
 @deprecate_at(datetime(2026, 1, 1, tzinfo=timezone.utc), replacement="/api/v2/users")
 def get_v0(uid):
     return {"id": uid}
+
+
+@app.route("/orders", methods=["POST"])
+def create_order():
+    which, result = dispatch(request.get_json())
+    resp = jsonify(result)
+    resp.headers["X-Order-Handler"] = which
+    return resp, (201 if which == "v2" else 200)
 
 
 if __name__ == "__main__":
